@@ -21,6 +21,10 @@ app.use('/cart', cartRoutes);
 app.use('/order', checkoutRoute);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+app.get('/',(res,req)=>{
+    res.send("Hello World");
+})
+
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
