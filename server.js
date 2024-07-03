@@ -19,7 +19,6 @@ app.use('/auth', authRoutes);
 app.use('/products', productRoutes);
 app.use('/cart', cartRoutes);
 app.use('/order', checkoutRoute);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/',(res,req)=>{
     res.send("Hello World");
