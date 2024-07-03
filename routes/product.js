@@ -50,7 +50,8 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
     if (req.file) {
-        updates.image = req.file.filename;
+        const image = await cloudinary.uploader.upload(req.file.path);
+        updates.image = image.secure_url;
     }
 
     try {
