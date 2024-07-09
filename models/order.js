@@ -46,6 +46,10 @@ const checkoutSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
+     shippingStatus: { 
+        type: String, 
+        default: 'Pending' 
+    },
     items: [orderItemSchema],
 });
 

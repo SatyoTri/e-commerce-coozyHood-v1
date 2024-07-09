@@ -1,12 +1,11 @@
 const express = require('express');
 const multer = require('multer');
-
 const router = express.Router();
 const { authMiddleware } = require('../middleware/auth');
 const Checkout = require('../models/order');
 const User = require('../models/user'); 
 const Product = require('../models/product');
-const History = require('../models/History')
+const History = require('../models/History');
 
 // Middleware to ensure authentication for POST /checkout route
 router.use('/checkout', authMiddleware);
@@ -27,14 +26,14 @@ const upload = multer({ storage: storage });
 // Checkout route
 router.post('/checkout', upload.single('proofOfTransfer'), async (req, res) => {
     const { recipientName, address, whatsappNumber } = req.body;
-    const proofOfTransfer = req.file? req.file.filename : null
+    const proofOfTransfer = req.file ? req.file.filename : null;
 
-    if (!recipientName ||!address ||!whatsappNumber) {
+    if (!recipientName || !address || !whatsappNumber) {
         return res.status(400).json({ message: 'All fields are required' });
     }
 
     try {
-        const user = req.user; // user retrieved from authMiddleware=
+        const user = req.user; // user retrieved from authMiddleware
         const cart = user.cart;
 
         // Mendapatkan detail produk dari cart pengguna
@@ -81,6 +80,7 @@ router.get('/checkouts', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch checkouts' });
     }
 });
+
 router.get('/orders', async (req, res) => {
     try {
         const user = req.user; // user retrieved from authMiddleware
@@ -109,7 +109,8 @@ router.patch('/complete/:id', async (req, res) => {
             whatsappNumber: checkout.whatsappNumber,
             proofOfTransfer: checkout.proofOfTransfer,
             items: checkout.items,
-            status: 'Completed'
+            status: 'Completed',
+            shippingStatus: checkout.shippingStatus // Preserve the shipping status
         });
 
         await history.save();
@@ -119,6 +120,27 @@ router.patch('/complete/:id', async (req, res) => {
     } catch (error) {
         console.error('Error updating checkout status:', error);
         res.status(500).json({ error: 'Failed to update checkout status' });
+    }
+});
+
+// Update shipping status
+router.patch('/shipping-status/:id', async (req, res) => {
+    const { id } = req.params;
+    const { shippingStatus } = req.body;
+
+    try {
+        const checkout = await Checkout.findById(id);
+        if (!checkout) {
+            return res.status(404).json({ error: 'Checkout not found' });
+        }
+
+        checkout.shippingStatus = shippingStatus;
+        await checkout.save();
+
+        res.status(200).json({ message: 'Shipping status updated', checkout });
+    } catch (error) {
+        console.error('Error updating shipping status:', error);
+        res.status(500).json({ error: 'Failed to update shipping status' });
     }
 });
 
