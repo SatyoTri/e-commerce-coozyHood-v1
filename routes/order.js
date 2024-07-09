@@ -1,35 +1,34 @@
 const express = require('express');
-const multer = require('multer');
 const router = express.Router();
 const { authMiddleware } = require('../middleware/auth');
 const Checkout = require('../models/order');
 const User = require('../models/user'); 
 const Product = require('../models/product');
 const History = require('../models/History');
+const upload = require('../middleware/multer');
+const cloudinary = require('../middleware/cloudinary');
 
 // Middleware to ensure authentication for POST /checkout route
 router.use('/checkout', authMiddleware);
 router.use('/orders', authMiddleware);
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + (file.originalname)); // Append extension
-    }
-});
-
-const upload = multer({ storage: storage });
 
 // Checkout route
 router.post('/checkout', upload.single('proofOfTransfer'), async (req, res) => {
     const { recipientName, address, whatsappNumber } = req.body;
-    const proofOfTransfer = req.file ? req.file.filename : null;
 
     if (!recipientName || !address || !whatsappNumber) {
         return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    let proofOfTransferUrl = null;
+    if (req.file) {
+        try {
+            const result = await cloudinary.uploader.upload(req.file.path);
+            proofOfTransferUrl = result.secure_url;
+        } catch (error) {
+            return res.status(500).json({ error: 'Failed to upload proof of transfer' });
+        }
     }
 
     try {
@@ -43,7 +42,7 @@ router.post('/checkout', upload.single('proofOfTransfer'), async (req, res) => {
                 product: cartItem.product,
                 quantity: cartItem.quantity,
                 size: cartItem.size,
-                title: product.title 
+                title: product.title
             };
         }));
 
@@ -53,7 +52,7 @@ router.post('/checkout', upload.single('proofOfTransfer'), async (req, res) => {
             recipientName,
             address,
             whatsappNumber,
-            proofOfTransfer,
+            proofOfTransfer: proofOfTransferUrl,
             items
         });
 
@@ -68,6 +67,7 @@ router.post('/checkout', upload.single('proofOfTransfer'), async (req, res) => {
         res.status(500).json({ error: 'Checkout failed' });
     }
 });
+
 
 // Get all checkouts (no authentication required)
 router.get('/checkouts', async (req, res) => {
