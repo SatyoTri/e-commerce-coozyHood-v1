@@ -1,28 +1,15 @@
 const express = require('express');
-const multer = require('multer');
 const router = express.Router();
 const Product = require('../models/product');
-
-
-// Set up multer storage
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/');
-    },
-    filename: function (req, file, cb) {
-        cb(null, `${Date.now()}-${file.originalname}`);
-    }
-});
-
-const upload = multer({ storage: storage });
-
+const upload = require('../middleware/multer');
+const cloudinary = require('../middleware/cloudinary');
 // Create a new product with an image
 router.post('/', upload.single('image'), async (req, res) => {
-    const { title, price, description, category,sizes } = req.body;
-    const image = req.file ? req.file.filename : null;
-    const product = new Product({ title, price, description, image, category,sizes });
+    const { title, price, description, category, sizes } = req.body;
 
     try {
+        const image = await cloudinary.uploader.upload(req.file.path);
+        const product = new Product({ title, price, description, image: image.secure_url, category, sizes });
         await product.save();
         res.status(201).send(product);
     } catch (error) {
@@ -63,7 +50,8 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
     if (req.file) {
-        updates.image = req.file.filename;
+        const image = await cloudinary.uploader.upload(req.file.path);
+        updates.image = image.secure_url;
     }
 
     try {
