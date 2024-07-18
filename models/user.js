@@ -20,13 +20,22 @@ const userSchema = new mongoose.Schema({
         type: Number, 
         default: 0 
 },
-cart: [
+  cart: [
         {
             product: { type: Schema.Types.ObjectId, ref: 'Product' },
             quantity: { type: Number, default: 1 },
             size: { type: String, required: true },
         }
-    ] 
+    ],
+   address: {
+    type: String,
+    required: true
+  },
+  whatsapp: {
+    type: String,
+    required: true 
+  }
+    
 });
 
 userSchema.pre('save', async function (next) {

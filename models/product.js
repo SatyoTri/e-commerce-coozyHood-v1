@@ -10,7 +10,7 @@ const productSchema = new schema({
         type: Number,
         required: true
     },
-     description: {
+    description: {
     type: String,
     required: true
   },

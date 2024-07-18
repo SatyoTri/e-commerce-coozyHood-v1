@@ -11,7 +11,7 @@ const cartItemSchema = new Schema({
   quantity: {
     type: Number,
     default: 1,
-    min: 1  // Minimum quantity should be 1
+    min: 1
   }
 });
 

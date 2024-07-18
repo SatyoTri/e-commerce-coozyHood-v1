@@ -156,4 +156,38 @@ router.get('/history', async (req, res) => {
     }
 });
 
+// Delete a checkout by ID
+router.delete('/checkouts/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const checkout = await Checkout.findByIdAndDelete(id);
+        if (!checkout) {
+            return res.status(404).json({ error: 'Checkout not found' });
+        }
+
+        res.status(200).json({ message: 'Checkout deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting checkout:', error);
+        res.status(500).json({ error: 'Failed to delete checkout' });
+    }
+});
+
+// Delete a history order by ID
+router.delete('/history/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const historyOrder = await History.findByIdAndDelete(id);
+        if (!historyOrder) {
+            return res.status(404).json({ error: 'History order not found' });
+        }
+
+        res.status(200).json({ message: 'History order deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting history order:', error);
+        res.status(500).json({ error: 'Failed to delete history order' });
+    }
+});
+
 module.exports = router;
