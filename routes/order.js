@@ -32,12 +32,12 @@ router.post('/checkout', upload.single('proofOfTransfer'), async (req, res) => {
     }
 
     try {
-        const user = req.user; // user retrieved from authMiddleware
+        const user = req.user; 
         const cart = user.cart;
 
-        // Mendapatkan detail produk dari cart pengguna
+       
         const items = await Promise.all(cart.map(async (cartItem) => {
-            const product = await Product.findById(cartItem.product).select('title'); // Mengambil judul produk
+            const product = await Product.findById(cartItem.product).select('title'); 
             return {
                 product: cartItem.product,
                 quantity: cartItem.quantity,

@@ -48,7 +48,7 @@ const checkoutSchema = new mongoose.Schema({
     },
      shippingStatus: { 
         type: String, 
-        default: 'Pending' 
+        default: 'On Process' 
     },
     items: [orderItemSchema],
 });
