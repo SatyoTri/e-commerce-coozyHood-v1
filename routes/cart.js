@@ -17,15 +17,13 @@ router.post('/add-to-cart/:productId', async (req, res) => {
             return res.status(404).json({ message: 'Product not found' });
         }
 
-        const user = req.user; // user retrieved from authMiddleware
+        const user = req.user;
 
-        // Check if the product already exists in the cart
+        // Check product already exists in the cart
         const existingCartItem = user.cart.find(item => item.product.toString() === productId);
         if (existingCartItem) {
-            // If exists, update the quantity
             existingCartItem.quantity += parseInt(quantity);
         } else {
-            // If not exists, add new item to cart
             user.cart.push({ product: productId, quantity,size });
         }
 
@@ -40,7 +38,7 @@ router.post('/add-to-cart/:productId', async (req, res) => {
 // Get cart items
 router.get('/cart', async (req, res) => {
     try {
-        const user = req.user; // user retrieved from authMiddleware
+        const user = req.user;
         
         // Fetch products manually
         const cartItems = await Promise.all(user.cart.map(async (item) => {
@@ -65,7 +63,7 @@ router.put('/update-cart/:productId', async (req, res) => {
     const { quantity } = req.body;
 
     try {
-        const user = req.user; // user retrieved from authMiddleware
+        const user = req.user;
         const cartItem = user.cart.find(item => item.product.toString() === productId);
 
         if (!cartItem) {
@@ -86,7 +84,7 @@ router.delete('/remove-from-cart/:productId', async (req, res) => {
     const { productId } = req.params;
 
     try {
-        const user = req.user; // user retrieved from authMiddleware
+        const user = req.user;
         user.cart = user.cart.filter(item => item.product.toString() !== productId);
         await user.save();
 

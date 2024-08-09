@@ -4,44 +4,58 @@ const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const {authMiddleware,adminMiddleware} = require('../middleware/auth')
 
-// Register a new user
+const generateToken = (user) => {
+  return jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET);
+};
+
+// Register new user
 router.post('/register', async (req, res) => {
-  const { username, email, password, role, address, whatsapp } = req.body;
-  let user = await User.findOne({ email });
-  if (user) return res.status(400).send('User already exists.');
+  try {
+    const { username, email, password, role, address, whatsapp } = req.body;
 
-  user = new User({ username,email, password, role, address, whatsapp });
-  await user.save();
+    let existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists.' });
+    }
 
-  const token = jwt.sign({ _id: user._id, role: user.role }, '05ba7ae8df02e52a18ec9c90d471492ae6d8d23547fafbc3c8dc8d3ecef37bd5');
-  res.send({ token });
+    const newUser = new User({ username, email, password, role, address, whatsapp });
+    await newUser.save();
+
+    const token = generateToken(newUser);
+
+    return res.status(201).json({ token });
+  } catch (error) {
+    return res.status(500).json({ message: 'Server error.' });
+  }
 });
 
 // Login user
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) return res.status(400).send('Invalid email or password.');
+  try {
+    const { email, password } = req.body;
 
-  const validPassword = await user.comparePassword(password);
-  if (!validPassword) return res.status(400).send('Invalid email or password.');
+    const user = await User.findOne({ email });
+    if (!user || !(await user.comparePassword(password))) {
+      return res.status(400).json({ message: 'Invalid email or password.' });
+    }
 
-  const token = jwt.sign({ _id: user._id, role: user.role }, '05ba7ae8df02e52a18ec9c90d471492ae6d8d23547fafbc3c8dc8d3ecef37bd5');
-  res.send({ token, user });
+    const token = generateToken(user);
+    return res.status(200).json({ token, user: user.toObject({ versionKey: false, transform: (doc, ret) => { delete ret.password; } }) });
+  } catch (error) {
+    return res.status(500).json({ message: 'Server error.' });
+  }
 });
 
-// Example protected route
-router.get('/admin', authMiddleware, adminMiddleware, (req, res) => {
-  res.send('Welcome Admin');
-});
-
+// Get user by ID
 router.get('/user/:id', authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
-    if (!user) return res.status(404).send('User not found.');
-    res.send(user);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+    return res.status(200).json(user);
   } catch (error) {
-    res.status(500).send('Server error.');
+    return res.status(500).json({ message: 'Server error.' });
   }
 });
 
@@ -49,10 +63,15 @@ router.get('/user/:id', authMiddleware, async (req, res) => {
 router.get('/users', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const users = await User.find().select('-password');
-    res.send(users);
+    return res.status(200).json(users);
   } catch (error) {
-    res.status(500).send('Server error.');
+    return res.status(500).json({ message: 'Server error.' });
   }
+});
+
+//protected route
+router.get('/admin', authMiddleware, adminMiddleware, (req, res) => {
+  return res.status(200).json({ message: 'Welcome Admin' });
 });
 
 module.exports = router;

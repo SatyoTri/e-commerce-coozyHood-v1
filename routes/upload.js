@@ -1,9 +1,9 @@
-const cloudinary = require('cloudinary').v2; // Ensure correct Cloudinary version
+const cloudinary = require('cloudinary').v2;
 
 cloudinary.config({
-  cloud_name: "dq87kzuvj",
-  api_key: "778936427144278",
-  api_secret: "fV72zVHhu5t-Wz4Y4mo0zoQtKlc"
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 const multer = require('multer');
@@ -14,7 +14,7 @@ const cloudinaryStorage = multer.diskStorage({
     cb(null, file.fieldname + '-' + uniqueSuffix);
   },
   destination: function (req, file, cb) {
-    cb(null, 'images/'); // Or any desired folder within your Cloudinary account
+    cb(null, 'images/');
   }
 });
 

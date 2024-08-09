@@ -6,7 +6,7 @@ const User = require('../models/user');
 const Product = require('../models/product');
 const History = require('../models/History');
 const upload = require('../middleware/multer');
-const cloudinary = require('../middleware/cloudinary');
+const cloudinary = require('cloudinary').v2; 
 
 // Middleware to ensure authentication for POST /checkout route
 router.use('/checkout', authMiddleware);

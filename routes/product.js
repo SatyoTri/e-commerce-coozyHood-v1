@@ -2,16 +2,27 @@ const express = require('express');
 const router = express.Router();
 const Product = require('../models/product');
 const upload = require('../middleware/multer');
-const cloudinary = require('../middleware/cloudinary');
+const cloudinary = require('cloudinary').v2; 
+
+
 // Create a new product with an image
 router.post('/', upload.single('image'), async (req, res) => {
     const { title, price, description, category, sizes } = req.body;
 
     try {
         const image = await cloudinary.uploader.upload(req.file.path);
-        const product = new Product({ title, price, description, image: image.secure_url, category, sizes });
+        const product = new Product({ 
+            title, 
+            price, 
+            description, 
+            image: image.secure_url, 
+            category, 
+            sizes 
+        });
+
         await product.save();
         res.status(201).send(product);
+
     } catch (error) {
         res.status(400).send(error);
     }
@@ -88,6 +99,7 @@ router.get('/categories', async (req, res) => {
         res.status(500).send("errrror");
     }
 });
+
 // Get products in a specific category
 router.get('/category/:category', async (req, res) => {
     const category = req.params.category;
